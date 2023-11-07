@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Cambiar Personaje"
+        android:id="@+id/swichChar"
+        android:icon="@drawable/ic_android_black_24dp"
+        app:showAsAction="ifRoom"
+        />
+
+    <item android:title="Nueva Partida"
+        android:id="@+id/newGame"/>
+
+    <item android:title="Instrucciones"
+        android:id="@+id/gameInstructions"/>
+
+    <item android:title="Configuracion"
+        android:id="@+id/gameSettings"/>
+</menu>
