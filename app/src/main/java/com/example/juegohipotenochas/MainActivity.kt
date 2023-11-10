@@ -1,11 +1,18 @@
 package com.example.juegohipotenochas
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.GridLayout
+import android.widget.ImageView
+import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import java.util.Random
@@ -34,8 +41,8 @@ class MainActivity : AppCompatActivity() {
                 showInstructions()
                 true
             }
-            R.id.select_character_spinner -> {
-                //selectCharacter()
+            R.id.switchChar-> {
+                selectCharacter()
                 true
             }
 
@@ -101,7 +108,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
 
                         // El jugador no ha perdido, comprueba si hay minas alrededor
-                        comprobarMinas(row, col, button, minas)
+                        comprobarMinas(row, col, button, minas, numRows, numCols, gridLayout)
 
                     }
 
@@ -127,54 +134,70 @@ class MainActivity : AppCompatActivity() {
                 minas.add(nuevaMina)
             }
         }
-
         return minas
     }
 
     private fun comprobarMinas(
+        row: Int,
+        col: Int,
+        button: Button,
+        minas: List<Pair<Int, Int>>,
         numRows: Int,
         numCols: Int,
-        button: Button,
-        minas: List<Pair<Int, Int>>
-    ) {
-        // Verificar si la celda actual ya se ha procesado
+        gridLayout: GridLayout) {
+
+        // Verifica si la celda ya ha sido procesada
         if (!button.isEnabled) {
+            button.setBackgroundResource(R.color.gray)
             return
         }
+        // Marca la celda como procesada y deshabilita el botón
+        button.isEnabled = false
 
-        // Contador para minas adyacentes
-        var minasAlrededor = 0
+        var contadorMinasAlrededor = 0
 
-        // Comprueba si hay minas alrededor de la celda actual
-        for (i in numRows - 1..numRows + 1) {
-            for (j in numCols - 1..numCols + 1) {
-                if (minas.contains(Pair(i, j))) {
-                    minasAlrededor++
+        // Verifica las celdas alrededor de la actual
+        for (i in -1..1) {
+            for (j in -1..1) {
+                val newRow = row + i
+                val newCol = col + j
+
+                // Verifica si la nueva posición está dentro del tablero
+                if (newRow in 0 until numRows && newCol in 0 until numCols) {
+                    val currentPosition = Pair(newRow, newCol)
+
+                    // Verifica si hay una mina en la posición actual
+                    if (minas.contains(currentPosition)) {
+                        contadorMinasAlrededor++
+                    }
                 }
             }
         }
 
-        if (minasAlrededor > 0) {
-            // Hay minas adyacentes, mostrar el número de minas
-            button.text = minasAlrededor.toString()
-            button.setBackgroundColor(ContextCompat.getColor(this, R.color.gray))
-            button.isEnabled = false
-        } else {
-            // No hay minas adyacentes, explorar las celdas adyacentes recursivamente
-            button.setBackgroundColor(ContextCompat.getColor(this, R.color.gray))
-            button.isEnabled = false
+        // Actualiza la apariencia del botón según el resultado
+        if (contadorMinasAlrededor > 0) {
+            // Hay minas alrededor, mostrar el número de minas
+            button.text = contadorMinasAlrededor.toString()
+            // Cambiar de color al texto del boton
+            button.setTextColor(ContextCompat.getColor(this, R.color.black))
+            button.setBackgroundResource(R.color.gray)
 
-            for (i in numRows - 1..numRows + 1) {
-                for (j in numCols - 1..numCols + 1) {
-                    if (i in 0 until numRows && j in 0 until numCols) {
-                        /*val adjacentButton = Pair(i, j) as Button
-                        comprobarMinas(i, j, adjacentButton, minas)*/
+        } else {
+            // No hay minas alrededor, realizar comprobación recursiva
+            for (i in -1..1) {
+                for (j in -1..1) {
+                    val newRow = row + i
+                    val newCol = col + j
+
+                    // Verificar si la nueva posición está dentro del tablero
+                    if (newRow in 0 until numRows && newCol in 0 until numCols) {
+                        val adjacentButton = gridLayout.getChildAt(newRow * numCols + newCol) as Button
+                        comprobarMinas(newRow, newCol, adjacentButton, minas, numRows, numCols, gridLayout)
                     }
                 }
             }
         }
     }
-
 
     private fun showInstructions() {
 
@@ -197,26 +220,60 @@ class MainActivity : AppCompatActivity() {
         val dialog: AlertDialog = builder.create()
         dialog.show()
     }
-}
 
-    /*private fun selectCharacter() {
+    private fun selectCharacter() {
 
         val dialogView = layoutInflater.inflate(R.layout.select_character, null)
+        val spinner = dialogView.findViewById<Spinner>(R.id.select_character_spinner)
+        //val iconoSelect = spinner.findViewById<ImageView>(R.id.switchChar)
 
-        // Muestra las instrucciones del juego con AlertDialog, mediante un value llamado builder
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Selecciona un personaje")
-        builder.setMessage(
-            "Elige un personaje para jugar"
+
+        // Lista de recursos de imágenes para el Spinner
+        val imageList = listOf(
+            R.drawable.flagicon_blue,
+            R.drawable.flagicon_green,
+            R.drawable.flagicon_yellow,
+            R.drawable.flagicon_red
         )
 
-        // Botón para cerrar el AlertDialog
+        val adapter = AdaptadorSpinnerImagenes(this, imageList)
+        spinner.adapter = adapter
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Selecciona un personaje")
+        builder.setView(dialogView)
+
         builder.setPositiveButton("Aceptar") { dialog, _ ->
+            // Lógica a realizar cuando se hace clic en Aceptar
             dialog.dismiss()
         }
 
-        // Muestra el dailogo
         val dialog: AlertDialog = builder.create()
         dialog.show()
-    }*/
+    }
+
+}
+
+
+class AdaptadorSpinnerImagenes(context: Context, private val images: List<Int>) :
+    ArrayAdapter<Int>(context, android.R.layout.simple_spinner_item, images) {
+
+    override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+        return getImageForPosition(position)
+    }
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        return getImageForPosition(position)
+    }
+
+    private fun getImageForPosition(position: Int): ImageView {
+        val imageView = ImageView(context)
+        imageView.setImageResource(images[position])
+        return imageView
+    }
+}
+
+
+
+
 

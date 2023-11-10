@@ -3,8 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:title="Cambiar Personaje"
-        android:id="@+id/swichChar"
-        android:icon="@drawable/ic_android_black_24dp"
+        android:id="@+id/switchChar"
+        android:icon="@drawable/flagicon_blue"
         app:showAsAction="ifRoom"
         />
 
