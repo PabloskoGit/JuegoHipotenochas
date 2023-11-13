@@ -3,11 +3,9 @@ package com.example.juegohipotenochas
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.GridLayout
@@ -15,10 +13,9 @@ import android.widget.ImageView
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import java.util.Random
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,7 +24,6 @@ class MainActivity : AppCompatActivity() {
         toolbar.inflateMenu(R.menu.menu)
         setSupportActionBar(toolbar)
 
-        generarTablero()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -37,12 +33,24 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
+
+            R.id.newGame -> {
+                val gridLayout = findViewById<GridLayout>(R.id.tablero_gridLayout)
+                gridLayout.removeAllViews()
+                generarTablero()
+                true
+            }
+
             R.id.gameInstructions -> {
                 showInstructions()
                 true
             }
-            R.id.switchChar-> {
+            R.id.switchChar -> {
                 selectCharacter()
+                true
+            }
+            R.id.gameSettings -> {
+                changeGameMode()
                 true
             }
 
@@ -54,8 +62,12 @@ class MainActivity : AppCompatActivity() {
 
         // Generamos el tablero de juego, y creamos values con los valores de las filas, columnas y minas
         val gridLayout = findViewById<GridLayout>(R.id.tablero_gridLayout)
-        val numRows = 8
-        val numCols = 8
+
+        gridLayout.columnCount = 10
+        gridLayout.rowCount = 10
+
+        val numCols = gridLayout.columnCount
+        val numRows = gridLayout.rowCount
         val numMinas = 10
 
         // Llamamos al metodo de generar minas, y le pasamos los valores de las filas, columnas y minas
@@ -64,15 +76,19 @@ class MainActivity : AppCompatActivity() {
         // Generamos las celdas del tablero con dos bucles for anidados
         for (row in 0 until numRows) {
             for (col in 0 until numCols) {
-                val button = Button(this)
-                button.layoutParams = GridLayout.LayoutParams().apply {
+                val button = Button(this).apply {
+
+                layoutParams = GridLayout.LayoutParams().apply {
+
                     rowSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                     columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                     width = 0
                     height = 0
                     setMargins(5, 5, 5, 5)
                 }
-                button.setBackgroundResource(R.color.white)
+                    setPadding(0,0,0,0)
+                    setBackgroundResource(R.color.white)
+                }
 
                 // Verifica si la coordenada actual es una mina y configura el botón en consecuencia
                 val isMina = minas.contains(Pair(row, col))
@@ -123,7 +139,7 @@ class MainActivity : AppCompatActivity() {
         val minas = mutableListOf<Pair<Int, Int>>()
 
         // Genera minas aleatoriamente con un random y un bucle while
-        val random = Random()
+        val random = Random
         while (minas.size < numMinas) {
             val randomRow = random.nextInt(numRows)
             val randomCol = random.nextInt(numCols)
@@ -221,6 +237,28 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun showErrorNewGame() {
+
+        // Muestra las instrucciones del juego con AlertDialog, mediante un value llamado builder
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Instrucciones")
+        builder.setMessage(
+            "El juego esta basado en el juego del buscaminas, cuando pulsas en una casilla, sale un número que identifica cuántas hipotenochas hay alrededor:\n" +
+                    "Ten cuidado porque si pulsas en una casilla que tenga una hipotenocha escondida, perderás.\n" +
+                    "Si crees o tienes la certeza de que hay una hipotenocha, haz un click largo sobre la casilla para señalarla.\n" +
+                    "No hagas un click largo en una casilla donde no hay una hipotenocha porque perderás. Ganas una vez hayas encontrado todas las hipotenochas."
+        )
+
+        // Botón para cerrar el AlertDialog
+        builder.setPositiveButton("Aceptar") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        // Muestra el dailogo
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+
     private fun selectCharacter() {
 
         val dialogView = layoutInflater.inflate(R.layout.select_character, null)
@@ -250,6 +288,11 @@ class MainActivity : AppCompatActivity() {
 
         val dialog: AlertDialog = builder.create()
         dialog.show()
+    }
+
+    private fun changeGameMode() {
+
+
     }
 
 }
