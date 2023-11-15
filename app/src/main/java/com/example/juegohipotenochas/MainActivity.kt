@@ -242,6 +242,7 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             // Limpiar el layout actual y volver a crearlo
             gridLayout.removeAllViews()
+            minasEliminadas = 0
             generarTablero(dimensiones, numeroMinas)
         }
 
@@ -269,6 +270,7 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             // Limpiar el layout actual y volver a crearlo
             gridLayout.removeAllViews()
+            minasEliminadas = 0
             generarTablero(dimensiones, numeroMinas)
         }
 
