@@ -1,7 +1,6 @@
 package com.example.juegohipotenochas
 
 import android.app.AlertDialog
-import android.content.ClipData.Item
 import android.content.Context
 import android.os.Bundle
 import android.view.Menu
@@ -19,6 +18,7 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity() {
 
     private lateinit var menuJuego: Menu
+    private var minasEliminadas: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -28,33 +28,28 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
     }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         this.menuJuego = menu // Almacena el menú en la variable global
         return true
     }
-
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
 
             R.id.newGame -> {
                 val gridLayout = findViewById<GridLayout>(R.id.tablero_gridLayout)
                 gridLayout.removeAllViews()
-                when (obtenerNivelDificultad()) {
 
+                when (obtenerNivelDificultad()) {
                     "Fácil" -> {
                         generarTablero(8, 10)
                     }
-
                     "Intermedio" -> {
-                        generarTablero(12, 15)
+                        generarTablero(12, 25)
                     }
-
                     "Difícil" -> {
-                        generarTablero(16, 25)
+                        generarTablero(16, 50)
                     }
-
                 }
                 true
             }
@@ -77,7 +72,6 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-
     private fun generarTablero(dimensiones: Int, numeroMinas: Int) {
 
         // Generamos el tablero de juego, y creamos values con los valores de las filas, columnas y minas
@@ -95,6 +89,7 @@ class MainActivity : AppCompatActivity() {
         // Generamos las celdas del tablero con dos bucles for anidados
         for (row in 0 until numRows) {
             for (col in 0 until numCols) {
+                //Creacion de la celada
                 val button = Button(this).apply {
 
                     layoutParams = GridLayout.LayoutParams().apply {
@@ -108,74 +103,40 @@ class MainActivity : AppCompatActivity() {
                     setPadding(0, 0, 0, 0)
                     setBackgroundResource(R.color.white)
                 }
-
                 // Verifica si la coordenada actual es una mina y configura el botón en consecuencia
                 val isMina = minas.contains(Pair(row, col))
-                var minasEliminadas = numeroMinas
-                if (isMina) {
-                    button.text =
-                        "M" // Esto es solo un ejemplo, puedes personalizar la apariencia para representar una mina
-                }
 
                 button.setOnClickListener {
                     // Lógica del juego al hacer clic en una celda
                     if (isMina) {
                         // El jugador ha perdido
-                        button.setBackgroundColor(ContextCompat.getColor(this, R.color.red))
-                        val builder = AlertDialog.Builder(this)
-                        builder.setTitle("HAS PERDIDO")
-                        builder.setMessage("¿Quieres volver a jugar?")
-
-                        builder.setNegativeButton("Salir") { dialog, _ ->
-                            dialog.dismiss()
-                            finish()
-                        }
-
-                        builder.setPositiveButton("Reiniciar") { dialog, _ ->
-                            dialog.dismiss()
-                            // Limpiar el layout actual y volver a crearlo
-                            gridLayout.removeAllViews()
-                            generarTablero(dimensiones, numeroMinas)
-                        }
-
-                        val dialog: AlertDialog = builder.create()
-                        dialog.show()
-
+                        gameLose(gridLayout, dimensiones, numeroMinas, button)
                     } else {
-
                         // El jugador no ha perdido, comprueba si hay minas alrededor
                         comprobarMinas(row, col, button, minas, numRows, numCols, gridLayout)
-
                     }
-
                 }
 
                 button.setOnLongClickListener {
 
-                    if (button.background == menuJuego.findItem(R.id.switchChar).icon) {
-                        // Si la celda ya estaba marcada como sospechosa, deshaz la marca
-                        button.setBackgroundResource(R.color.white)
-                        button.tag = "NoSospechosa"
+                    // Marcar la celda como sospechosa
+                    button.background = menuJuego.findItem(R.id.switchChar).icon
+
+                    if (isMina) {
+                        minasEliminadas++
+                        if (minasEliminadas == numeroMinas) {
+                            gameWin(gridLayout, dimensiones, numeroMinas)
+                        }
                     } else {
-                        // Marcar la celda como sospechosa
-                        button.background = menuJuego.findItem(R.id.switchChar).icon
-                        button.tag = "Sospechosa"
+                        gameLose(gridLayout, dimensiones, numeroMinas, button)
                     }
 
-                    if (isMina && button.tag.equals("Sospechosa")) {
-                        minasEliminadas--
-                        if (minasEliminadas == 0) {
-                            gameWin()
-                        }
-                    }
                     true // Indica que el evento ha sido manejado
                 }
-
                 gridLayout.addView(button)
             }
         }
     }
-
     private fun generarMinas(numRows: Int, numCols: Int, numMinas: Int): List<Pair<Int, Int>> {
 
         val minas = mutableListOf<Pair<Int, Int>>()
@@ -194,7 +155,6 @@ class MainActivity : AppCompatActivity() {
         }
         return minas
     }
-
     private fun comprobarMinas(
         row: Int,
         col: Int,
@@ -267,6 +227,54 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun gameWin(gridLayout: GridLayout, dimensiones: Int, numeroMinas: Int) {
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("¡HAS GANADO!")
+        builder.setMessage("Felicidades has encontrado todas las minas, ¿Quieres volver a jugar?")
+
+        builder.setNegativeButton("Salir") { dialog, _ ->
+            dialog.dismiss()
+            finish()
+        }
+
+        builder.setPositiveButton("Reiniciar") { dialog, _ ->
+            dialog.dismiss()
+            // Limpiar el layout actual y volver a crearlo
+            gridLayout.removeAllViews()
+            generarTablero(dimensiones, numeroMinas)
+        }
+
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+    private fun gameLose(
+        gridLayout: GridLayout,
+        dimensiones: Int,
+        numeroMinas: Int,
+        button: Button
+    ) {
+
+        button.setBackgroundColor(ContextCompat.getColor(this, R.color.red))
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("HAS PERDIDO")
+        builder.setMessage("¿Quieres volver a jugar?")
+
+        builder.setNegativeButton("Salir") { dialog, _ ->
+            dialog.dismiss()
+            finish()
+        }
+
+        builder.setPositiveButton("Reiniciar") { dialog, _ ->
+            dialog.dismiss()
+            // Limpiar el layout actual y volver a crearlo
+            gridLayout.removeAllViews()
+            generarTablero(dimensiones, numeroMinas)
+        }
+
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
     private fun showInstructions() {
 
         // Muestra las instrucciones del juego con AlertDialog, mediante un value llamado builder
@@ -274,9 +282,10 @@ class MainActivity : AppCompatActivity() {
         builder.setTitle("Instrucciones")
         builder.setMessage(
             "El juego esta basado en el juego del buscaminas, cuando pulsas en una casilla, sale un número que identifica cuántas hipotenochas hay alrededor:\n" +
-                    "Ten cuidado porque si pulsas en una casilla que tenga una hipotenocha escondida, perderás.\n" +
-                    "Si crees o tienes la certeza de que hay una hipotenocha, haz un click largo sobre la casilla para señalarla.\n" +
-                    "No hagas un click largo en una casilla donde no hay una hipotenocha porque perderás. Ganas una vez hayas encontrado todas las hipotenochas."
+                    "Ten cuidado porque si pulsas en una casilla que tenga una hipotenocha escondida, perderás.\n \n" +
+                    "Si crees o tienes la certeza de que hay una hipotenocha, haz un click largo sobre la casilla para señalarla.\n \n" +
+                    "No hagas un click largo en una casilla donde no hay una hipotenocha porque perderás. Ganas una vez hayas encontrado todas las hipotenochas.\n \n" +
+                    "Para cambiar el nivel de dificultad, ve a la opción de configuración del menú, y después nueva partida."
         )
 
         // Botón para cerrar el AlertDialog
@@ -288,24 +297,6 @@ class MainActivity : AppCompatActivity() {
         val dialog: AlertDialog = builder.create()
         dialog.show()
     }
-
-    private fun gameWin() {
-
-        // Muestra las instrucciones del juego con AlertDialog, mediante un value llamado builder
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("HAS GANADO")
-        builder.setMessage("¡Felicidades, has encontrado todas las minas!")
-
-        // Botón para cerrar el AlertDialog
-        builder.setPositiveButton("Aceptar") { dialog, _ ->
-            dialog.dismiss()
-        }
-
-        // Muestra el dailogo
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
-    }
-
     private fun selectCharacter() {
 
         val dialogView = layoutInflater.inflate(R.layout.select_character, null)
@@ -339,7 +330,6 @@ class MainActivity : AppCompatActivity() {
         val dialog: AlertDialog = builder.create()
         dialog.show()
     }
-
     private fun changeGameMode() {
         val difficultyLevels = arrayOf("Fácil", "Intermedio", "Difícil")
 
@@ -360,8 +350,6 @@ class MainActivity : AppCompatActivity() {
         val alertDialog = builder.create()
         alertDialog.show()
     }
-
-
     private fun setDifficulty(selectedDifficulty: String) {
         val sharedPref = getPreferences(MODE_PRIVATE)
         val editor = sharedPref.edit()
@@ -370,13 +358,10 @@ class MainActivity : AppCompatActivity() {
 
         // Aquí puedes realizar otras acciones basadas en el nivel de dificultad seleccionado
     }
-
     private fun obtenerNivelDificultad(): String {
         val sharedPref = getPreferences(MODE_PRIVATE)
         return sharedPref.getString("difficulty", "Fácil") ?: "Fácil"
     }
-
-
     class AdaptadorSpinnerImagenes(context: Context, private val images: List<Int>) :
         ArrayAdapter<Int>(context, android.R.layout.simple_spinner_item, images) {
 
