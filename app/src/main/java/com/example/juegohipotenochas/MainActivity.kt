@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
 
     // Esta variable almacena el menú de la aplicación
     private lateinit var menuJuego: Menu
+
     // Esta variable almacena el número de minas eliminadas
     private var minasEliminadas: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -124,12 +125,18 @@ class MainActivity : AppCompatActivity() {
 
                 button.setOnClickListener {
                     // Lógica del juego al hacer clic en una celda
-                    if (isMina) {
-                        // El jugador ha perdido
-                        gameLose(gridLayout, dimensiones, numeroMinas, button)
+
+                    if (button.background == menuJuego.findItem(R.id.switchChar).icon) {
+                        button.setBackgroundResource(R.color.white)
                     } else {
-                        // El jugador no ha perdido, comprueba si hay minas alrededor
-                        comprobarMinas(row, col, button, minas, numRows, numCols, gridLayout)
+
+                        if (isMina) {
+                            // El jugador ha perdido
+                            gameLose(gridLayout, dimensiones, numeroMinas, button)
+                        } else {
+                            // El jugador no ha perdido, comprueba si hay minas alrededor
+                            comprobarMinas(row, col, button, minas, numRows, numCols, gridLayout)
+                        }
                     }
                 }
 
@@ -376,7 +383,7 @@ class MainActivity : AppCompatActivity() {
         builder.setMessage(
             "El juego esta basado en el juego del buscaminas, cuando pulsas en una casilla, sale un número que identifica cuántas hipotenochas hay alrededor:\n" +
                     "Ten cuidado porque si pulsas en una casilla que tenga una hipotenocha escondida, perderás.\n \n" +
-                    "Si crees o tienes la certeza de que hay una hipotenocha, haz un click largo sobre la casilla para señalarla.\n \n" +
+                    "Si crees o tienes la certeza de que hay una hipotenocha, haz un click largo sobre la casilla para señalarla; y si quieres desmarcarla haz un click simple.\n \n" +
                     "No hagas un click largo en una casilla donde no hay una hipotenocha porque perderás. Ganas una vez hayas encontrado todas las hipotenochas.\n \n" +
                     "Para cambiar el nivel de dificultad, ve a la opción de configuración del menú, y después nueva partida."
         )

@@ -22,13 +22,12 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="4dp"
-        android:background="#CCCCCC"
+        android:background="#C18ED7"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:layout_constraintVertical_bias="0.5"
         tools:context=".MainActivity" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
