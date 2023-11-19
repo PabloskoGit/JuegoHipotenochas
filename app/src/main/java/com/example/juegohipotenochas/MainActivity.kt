@@ -17,7 +17,9 @@ import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
+    // Esta variable almacena el menú de la aplicación
     private lateinit var menuJuego: Menu
+    // Esta variable almacena el número de minas eliminadas
     private var minasEliminadas: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,12 +29,17 @@ class MainActivity : AppCompatActivity() {
         toolbar.inflateMenu(R.menu.menu)
         setSupportActionBar(toolbar)
 
+        // Se llama a una alerta de bienvenida al iniciar la aplicación
+        newGameAlert()
+
     }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         this.menuJuego = menu // Almacena el menú en la variable global
         return true
     }
+
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
 
@@ -44,9 +51,11 @@ class MainActivity : AppCompatActivity() {
                     "Fácil" -> {
                         generarTablero(8, 10)
                     }
+
                     "Intermedio" -> {
                         generarTablero(12, 25)
                     }
+
                     "Difícil" -> {
                         generarTablero(16, 50)
                     }
@@ -72,6 +81,13 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    /**
+     * Genera y configura dinámicamente un tablero de juego con botones que representan celdas.
+     *
+     * @param dimensiones El número de filas y columnas en el tablero.
+     * @param numeroMinas El número de minas que se colocarán en el tablero.
+     */
     private fun generarTablero(dimensiones: Int, numeroMinas: Int) {
 
         // Generamos el tablero de juego, y creamos values con los valores de las filas, columnas y minas
@@ -131,12 +147,21 @@ class MainActivity : AppCompatActivity() {
                         gameLose(gridLayout, dimensiones, numeroMinas, button)
                     }
 
-                    true // Indica que el evento ha sido manejado
+                    true
                 }
                 gridLayout.addView(button)
             }
         }
     }
+
+    /**
+     * Genera posiciones aleatorias para las minas en el tablero.
+     *
+     * @param numRows El número de filas en el tablero.
+     * @param numCols El número de columnas en el tablero.
+     * @param numMinas El número total de minas que se deben generar.
+     * @return Lista de pares (fila, columna) que representan las posiciones de las minas en el tablero.
+     */
     private fun generarMinas(numRows: Int, numCols: Int, numMinas: Int): List<Pair<Int, Int>> {
 
         val minas = mutableListOf<Pair<Int, Int>>()
@@ -155,6 +180,18 @@ class MainActivity : AppCompatActivity() {
         }
         return minas
     }
+
+    /**
+     * Verifica las celdas adyacentes a la celda actual y actualiza la apariencia del botón según el número de minas cercanas.
+     *
+     * @param row La fila de la celda actual.
+     * @param col La columna de la celda actual.
+     * @param button El botón asociado a la celda actual.
+     * @param minas Lista de pares (fila, columna) que representan las posiciones de las minas en el tablero.
+     * @param numRows El número total de filas en el tablero.
+     * @param numCols El número total de columnas en el tablero.
+     * @param gridLayout El GridLayout que contiene los botones del tablero.
+     */
     private fun comprobarMinas(
         row: Int,
         col: Int,
@@ -227,6 +264,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Muestra un cuadro de diálogo de bienvenida al iniciar una nueva partida.
+     * Proporciona información sobre el juego y ofrece opciones para salir o aceptar.
+     */
+    private fun newGameAlert() {
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("¡ENCUENTRA LAS HIPOTENOCHAS!")
+        builder.setMessage(
+            "Bienvenido al juego de las hipotenochas, ¡Localizalas todas!" +
+                    "\n \n Para empezar pulsa en nueva partida en el menú de arriba a la izquierda."
+        )
+
+        builder.setNegativeButton("Salir") { dialog, _ ->
+            dialog.dismiss()
+            finish()
+        }
+
+        builder.setPositiveButton("Aceptar") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+
+    /**
+     * Muestra un cuadro de diálogo de victoria al encontrar todas las minas en el juego.
+     * Ofrece opciones para salir o reiniciar una nueva partida.
+     *
+     * @param gridLayout El GridLayout que contiene los botones del tablero.
+     * @param dimensiones El número de filas y columnas en el tablero.
+     * @param numeroMinas El número total de minas en el tablero.
+     */
     private fun gameWin(gridLayout: GridLayout, dimensiones: Int, numeroMinas: Int) {
 
         val builder = AlertDialog.Builder(this)
@@ -245,10 +316,22 @@ class MainActivity : AppCompatActivity() {
             minasEliminadas = 0
             generarTablero(dimensiones, numeroMinas)
         }
+        // Deshabilita la opción en la que el usuario pulse fuera del AlertDialog para cerrarlo
+        builder.setCancelable(false)
 
         val dialog: AlertDialog = builder.create()
         dialog.show()
     }
+
+    /**
+     * Muestra un cuadro de diálogo de derrota al activarse una mina en el juego.
+     * Actualiza la apariencia del botón que activó la mina y ofrece opciones para salir o reiniciar una nueva partida.
+     *
+     * @param gridLayout El GridLayout que contiene los botones del tablero.
+     * @param dimensiones El número de filas y columnas en el tablero.
+     * @param numeroMinas El número total de minas en el tablero.
+     * @param button El botón que activó la mina.
+     */
     private fun gameLose(
         gridLayout: GridLayout,
         dimensiones: Int,
@@ -273,10 +356,18 @@ class MainActivity : AppCompatActivity() {
             minasEliminadas = 0
             generarTablero(dimensiones, numeroMinas)
         }
+        // Deshabilita la opción en la que el usuario pulse fuera del AlertDialog para cerrarlo
+        builder.setCancelable(false)
 
         val dialog: AlertDialog = builder.create()
         dialog.show()
+
     }
+
+    /**
+     * Muestra un cuadro de diálogo con las instrucciones del juego.
+     * Proporciona información sobre cómo jugar, reglas y consejos.
+     */
     private fun showInstructions() {
 
         // Muestra las instrucciones del juego con AlertDialog, mediante un value llamado builder
@@ -299,6 +390,11 @@ class MainActivity : AppCompatActivity() {
         val dialog: AlertDialog = builder.create()
         dialog.show()
     }
+
+    /**
+     * Muestra un cuadro de diálogo que permite al usuario seleccionar un personaje.
+     * Utiliza un Spinner personalizado que muestra imágenes y actualiza el ícono del personaje en el toolbar.
+     */
     private fun selectCharacter() {
 
         val dialogView = layoutInflater.inflate(R.layout.select_character, null)
@@ -325,13 +421,17 @@ class MainActivity : AppCompatActivity() {
             menuJuego.findItem(R.id.switchChar).icon =
                 ContextCompat.getDrawable(this, selectedCharacterIcon)
 
-
             dialog.dismiss()
         }
 
         val dialog: AlertDialog = builder.create()
         dialog.show()
     }
+
+    /**
+     * Muestra un cuadro de diálogo que permite al usuario cambiar el nivel de dificultad del juego.
+     * Utiliza una lista de opciones y guarda la selección del usuario en la configuración del juego.
+     */
     private fun changeGameMode() {
         val difficultyLevels = arrayOf("Fácil", "Intermedio", "Difícil")
 
@@ -352,29 +452,70 @@ class MainActivity : AppCompatActivity() {
         val alertDialog = builder.create()
         alertDialog.show()
     }
+
+    /**
+     * Guarda el nivel de dificultad seleccionado por el usuario en las preferencias compartidas.
+     *
+     * @param selectedDifficulty El nivel de dificultad seleccionado por el usuario.
+     */
     private fun setDifficulty(selectedDifficulty: String) {
         val sharedPref = getPreferences(MODE_PRIVATE)
         val editor = sharedPref.edit()
         editor.putString("difficulty", selectedDifficulty)
         editor.apply()
-
-        // Aquí puedes realizar otras acciones basadas en el nivel de dificultad seleccionado
     }
+
+    /**
+     * Obtiene el nivel de dificultad almacenado en las preferencias compartidas.
+     * Si no se encuentra un nivel de dificultad almacenado, devuelve "Fácil" por defecto.
+     *
+     * @return El nivel de dificultad almacenado o "Fácil" por defecto.
+     */
     private fun obtenerNivelDificultad(): String {
         val sharedPref = getPreferences(MODE_PRIVATE)
         return sharedPref.getString("difficulty", "Fácil") ?: "Fácil"
     }
+
+    /**
+     * Adaptador personalizado para un Spinner que muestra imágenes en lugar de texto.
+     * Extiende la clase ArrayAdapter<Int> y utiliza una lista de recursos de imágenes.
+     *
+     * @param context Contexto de la aplicación.
+     * @param images Lista de recursos de imágenes a mostrar en el Spinner.
+     */
     class AdaptadorSpinnerImagenes(context: Context, private val images: List<Int>) :
         ArrayAdapter<Int>(context, android.R.layout.simple_spinner_item, images) {
 
+        /**
+         * Retorna la vista de cada elemento en el Spinner cuando se despliega la lista.
+         *
+         * @param position Posición del elemento en la lista.
+         * @param convertView Vista que puede ser reciclada para mejorar la eficiencia.
+         * @param parent Grupo que contiene el elemento en el Spinner.
+         * @return Vista que representa el elemento en la posición dada.
+         */
         override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
             return getImageForPosition(position)
         }
 
+        /**
+         * Retorna la vista del elemento seleccionado en el Spinner.
+         *
+         * @param position Posición del elemento seleccionado en la lista.
+         * @param convertView Vista que puede ser reciclada para mejorar la eficiencia.
+         * @param parent Grupo que contiene el elemento seleccionado en el Spinner.
+         * @return Vista que representa el elemento seleccionado en la posición dada.
+         */
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             return getImageForPosition(position)
         }
 
+        /**
+         * Crea y retorna una ImageView configurada con la imagen correspondiente a la posición dada.
+         *
+         * @param position Posición del elemento en la lista.
+         * @return ImageView configurada con la imagen de la posición dada.
+         */
         private fun getImageForPosition(position: Int): ImageView {
             val imageView = ImageView(context)
             imageView.setImageResource(images[position])
